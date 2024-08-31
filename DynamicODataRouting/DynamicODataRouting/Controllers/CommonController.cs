@@ -21,21 +21,31 @@ namespace DynamicODataRouting.Controllers
             this.twoStorageProvider = twoStorageProvider;
         }
 
-        [EnableQuery]
-        public async Task<IActionResult> GetAsync()
+        public async Task<IActionResult> GetAsync(ODataQueryOptions<T> queryOptions)
         {
+            Response response = new Response();
+            response.Metadata = new List<string>()
+            {
+                "One",
+                "Two",
+            };
+
             if (typeof(T) == typeof(One))
             {
                 IQueryable<One> result = await oneStorageProvider.GetAllDataAsync();
-                return Ok(result);
+                response.Content = queryOptions.ApplyTo(result);
             }
             else if (typeof(T) == typeof(Two))
             {
                 IQueryable<Two> result = await twoStorageProvider.GetAllDataAsync();
-                return Ok(result);
+                response.Content = queryOptions.ApplyTo(result);
+            }
+            else
+            {
+                return BadRequest();
             }
 
-            return BadRequest();
+            return Ok(response);
         }
     }
 }
